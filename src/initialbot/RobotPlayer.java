@@ -7,17 +7,6 @@ public strictfp class RobotPlayer {
     static RobotController rc;
     static RobotInterface robot;
 
-    static final Direction[] directions = {
-        Direction.NORTH,
-        Direction.NORTHEAST,
-        Direction.EAST,
-        Direction.SOUTHEAST,
-        Direction.SOUTH,
-        Direction.SOUTHWEST,
-        Direction.WEST,
-        Direction.NORTHWEST,
-    };
-
     static int turn;
 
     public static void run(RobotController rc) {

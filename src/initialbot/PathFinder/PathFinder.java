@@ -21,10 +21,10 @@ public class PathFinder {
             robots.add(loc);
         }
 
-        return getGreedyDirection(rc.getLocation(), goal, robots);
+        return getStraightLineDirection(rc.getLocation(), goal, robots);
     }
 
-    private Direction getGreedyDirection(MapLocation current, MapLocation goal, Set<MapLocation> robots) {
+    private Direction getStraightLineDirection(MapLocation current, MapLocation goal, Set<MapLocation> robots) {
         Direction ideal = current.directionTo(goal);
         if (!robots.contains(current.add(ideal))) {
             return ideal;

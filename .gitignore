@@ -2,6 +2,8 @@ dist/*
 build/*
 src/lectureplayer
 
+.java_version
+
 /matches
 /deploy/lib
 /deploy/bin

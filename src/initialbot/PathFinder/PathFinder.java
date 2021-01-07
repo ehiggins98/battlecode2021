@@ -25,6 +25,10 @@ public class PathFinder {
     }
 
     private Direction getStraightLineDirection(MapLocation current, MapLocation goal, Set<MapLocation> robots) {
+        if (current.equals(goal) || (current.isAdjacentTo(goal) && robots.contains(goal))) {
+            return Direction.CENTER;
+        }
+
         Direction ideal = current.directionTo(goal);
         if (!robots.contains(current.add(ideal))) {
             return ideal;

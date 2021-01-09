@@ -16,6 +16,21 @@ public class Helpers {
         Direction.NORTHWEST,
     };
 
+    public static double getBaseCooldown(RobotType robotType) {
+        switch (robotType) {
+            case ENLIGHTENMENT_CENTER:
+                return 2.0;
+            case POLITICIAN:
+                return 1.0;
+            case SLANDERER:
+                return 2.0;
+            case MUCKRAKER:
+                return 1.5;
+            default:
+                throw new IllegalArgumentException("argument to getSensorRadiusSquared must be a valid unit type");
+        }
+    }
+
     public static int getSensorRadiusSquared(RobotType robotType) {
         switch (robotType) {
             case ENLIGHTENMENT_CENTER:
@@ -29,5 +44,9 @@ public class Helpers {
             default:
                 throw new IllegalArgumentException("argument to getSensorRadiusSquared must be a valid unit type");
         }
+    }
+
+    public static int radiusSquared(int dx, int dy) {
+        return (int) (Math.pow(dx, 2) + Math.pow(dy, 2));
     }
 }

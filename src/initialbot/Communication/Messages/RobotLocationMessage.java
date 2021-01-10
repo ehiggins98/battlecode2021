@@ -56,6 +56,11 @@ public class RobotLocationMessage implements Message {
         this.robotType = Helpers.robotTypeFromInt(robotType);
     }
 
+    @Override
+    public boolean shouldIgnore(RobotType robotType, int roundCreated) {
+        return false;
+    }
+
     public RobotType getRobotType() {
         return robotType;
     }

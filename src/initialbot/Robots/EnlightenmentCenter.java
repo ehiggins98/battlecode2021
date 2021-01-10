@@ -24,10 +24,18 @@ public class EnlightenmentCenter implements RobotInterface {
     private final int adder = 1;
     private final double multiplier = 1.5;
 
+    private final int politicianInfluence = 20;
+    private final int slandererDefenseRadius = 3;
+    private final int politicianDefenseRadius = 6;
+
+    private Direction defenseDirection = Direction.WEST;
+
     // Early game state
     private int earlyGameInfluenceIncAchieved = 0;
     private int earlyGamePoliticiansCreated = 0;
-    private Direction earlyGameDirection = Direction.WEST;
+
+    // Mid game state
+    private RobotType midGameUnitToCreate = RobotType.SLANDERER;
 
     private final Map<Integer, Integer> influenceIncToCost;
 
@@ -50,14 +58,19 @@ public class EnlightenmentCenter implements RobotInterface {
     public void runTurn(int turn) throws GameActionException {
         updateBidAmount();
         
+        boolean finished;
         switch (phase) {
             case EARLY:
-                boolean finished = runEarlyGameTurn(turn);
+                finished = runEarlyGameTurn(turn);
                 if (finished) {
                     phase = GamePhase.MID;
                 }
                 break;
             case MID:
+                finished = runMidGameTurn(turn);
+                if (finished) {
+                    phase = GamePhase.LATE;
+                }
                 break;
             case LATE:
                 break;
@@ -69,9 +82,6 @@ public class EnlightenmentCenter implements RobotInterface {
     private boolean runEarlyGameTurn(int turn) throws GameActionException {
         final int influenceIncTarget = 8;
         final int politicianTarget = 8;
-        final int slandererDefenseRadius = 3;
-        final int politicianDefenseRadius = 6;
-        final int politicianInfluence = 20;
 
         double cooldown = 2 / passability;
         int buildsBeforeTurn20 = (int) (20 / cooldown);
@@ -82,23 +92,39 @@ public class EnlightenmentCenter implements RobotInterface {
                 buildDirection != null &&
                 rc.canBuildRobot(RobotType.SLANDERER, buildDirection, influenceIncToCost.get(influencePerSlanderer))) {
     
-            rc.buildRobot(RobotType.SLANDERER, buildDirection, influenceIncToCost.get(influencePerSlanderer));
-            communicator.sendMessage(new DefenseLocationMessage(RobotType.SLANDERER, turn, slandererDefenseRadius, earlyGameDirection));
-            earlyGameInfluenceIncAchieved += influencePerSlanderer;
-            earlyGameDirection = earlyGameDirection.rotateLeft();
+            buildSlandererAndDefend(turn, buildDirection, influencePerSlanderer);
         } else if (earlyGamePoliticiansCreated < politicianTarget &&
                 buildDirection != null &&
                 rc.canBuildRobot(RobotType.POLITICIAN, buildDirection, politicianInfluence)) {
 
-            rc.buildRobot(RobotType.POLITICIAN, buildDirection, politicianInfluence);
-            communicator.sendMessage(new DefenseLocationMessage(RobotType.POLITICIAN, turn, politicianDefenseRadius, earlyGameDirection));
-            earlyGamePoliticiansCreated++;
-            earlyGameDirection = earlyGameDirection.rotateLeft();
+            buildPoliticianAndDefend(turn, buildDirection);
         }
  
         bid();
 
         return earlyGameInfluenceIncAchieved >= influenceIncTarget && earlyGamePoliticiansCreated >= politicianTarget;
+    }
+
+    // Return value indicates whether the mid-game strategy is finished
+    // In the mid-game right now we just alternate creating slanderers and politicians, and bidding on every turn.
+    private boolean runMidGameTurn(int turn) throws GameActionException {
+        Direction buildDirection = getBuildDirection();
+        if (midGameUnitToCreate.equals(RobotType.POLITICIAN) && 
+                buildDirection != null &&
+                rc.canBuildRobot(RobotType.POLITICIAN, buildDirection, politicianInfluence)) {
+
+            buildPoliticianAndDefend(turn, buildDirection);
+            midGameUnitToCreate = RobotType.SLANDERER;
+        } else if (midGameUnitToCreate.equals(RobotType.SLANDERER) &&
+                buildDirection != null &&
+                rc.canBuildRobot(RobotType.SLANDERER, buildDirection, influenceIncToCost.get(1))) {
+            buildSlandererAndDefend(turn, buildDirection, 1);
+            midGameUnitToCreate = RobotType.POLITICIAN;
+        }
+
+        bid();
+
+        return false;
     }
 
     private void updateBidAmount() {
@@ -138,5 +164,19 @@ public class EnlightenmentCenter implements RobotInterface {
         }
 
         return null;
+    }
+
+    private void buildSlandererAndDefend(int turn, Direction buildDirection, int influenceInc) throws GameActionException {
+        rc.buildRobot(RobotType.SLANDERER, buildDirection, influenceIncToCost.get(influenceInc));
+        communicator.sendMessage(new DefenseLocationMessage(RobotType.SLANDERER, turn, slandererDefenseRadius, defenseDirection));
+        earlyGameInfluenceIncAchieved += influenceInc;
+        defenseDirection = defenseDirection.rotateLeft();
+    }
+
+    private void buildPoliticianAndDefend(int turn, Direction buildDirection) throws GameActionException {
+        rc.buildRobot(RobotType.POLITICIAN, buildDirection, politicianInfluence);
+        communicator.sendMessage(new DefenseLocationMessage(RobotType.POLITICIAN, turn, politicianDefenseRadius, defenseDirection));
+        earlyGamePoliticiansCreated++;
+        defenseDirection = defenseDirection.rotateLeft();
     }
 }

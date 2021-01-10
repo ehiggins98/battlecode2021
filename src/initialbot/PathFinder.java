@@ -69,7 +69,7 @@ public class PathFinder {
             fillWindowFromSeed(window, seedColIndex - toGoal.dx, -1 * toGoal.dx, goal.y < current.y, true);
         }
 
-        Direction argmin = null;
+        Direction argmin = Direction.CENTER;
         double min = Double.MAX_VALUE;
         for (Direction d : Helpers.directions) {
             if (window[windowDim / 2 + d.dx][windowDim / 2 + d.dy] < min && validMovementDirection(d, toGoal) && rc.canMove(d)) {
@@ -77,9 +77,16 @@ public class PathFinder {
                 min = window[windowDim / 2 + d.dx][windowDim / 2 + d.dy];
             }
         }
-        System.out.println(argmin);
 
         return argmin;
+    }
+
+    public MapLocation getLocationAtRadius(MapLocation center, int radius, Direction direction) {
+        double multiplier = radius / Math.sqrt(Math.pow(direction.dx, 2) + Math.pow(direction.dy, 2));
+        int newX = (int) Math.round(center.x + direction.dx * multiplier);
+        int newY = (int) Math.round(center.y + direction.dy * multiplier);
+
+        return new MapLocation(newX, newY);
     }
 
     // Leaving this in because it's a way to do pathfinding without using much bytecode

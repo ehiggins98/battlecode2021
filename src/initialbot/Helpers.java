@@ -16,6 +16,15 @@ public class Helpers {
         Direction.NORTHWEST,
     };
 
+    public static final RobotType[] robotTypes = {
+        RobotType.ENLIGHTENMENT_CENTER,
+        RobotType.POLITICIAN,
+        RobotType.SLANDERER,
+        RobotType.MUCKRAKER
+    };
+
+    public static final int flagBits = 24;
+
     public static double getBaseCooldown(RobotType robotType) {
         switch (robotType) {
             case ENLIGHTENMENT_CENTER:
@@ -48,5 +57,10 @@ public class Helpers {
 
     public static int radiusSquared(int dx, int dy) {
         return (int) (Math.pow(dx, 2) + Math.pow(dy, 2));
+    }
+
+    // Get a mask for the N least-significant bits
+    public static int getMaskForNLSBs(int n) {
+        return ~(~0 << n);
     }
 }

@@ -36,7 +36,7 @@ public class PathFinder {
     // but there are some optimizations done so that performance is good without needing a priority queue.
     public Direction getStepTowardGoal(MapLocation goal) throws GameActionException {
         MapLocation current = rc.getLocation();
-        if (current.equals(goal) || (current.isAdjacentTo(goal) && rc.isLocationOccupied(goal))) {
+        if (current.equals(goal) || (current.isAdjacentTo(goal) && (!rc.canDetectLocation(goal) || rc.isLocationOccupied(goal)))) {
             return Direction.CENTER;
         }
 

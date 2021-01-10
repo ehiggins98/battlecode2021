@@ -5,6 +5,7 @@ import java.util.Map;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
+import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
@@ -128,6 +129,11 @@ public class EnlightenmentCenter implements RobotInterface {
     }
 
     private void updateBidAmount() {
+        // No point in updating the bid amount if we have a guaranteed majority of votes
+        if (rc.getTeamVotes() > GameConstants.GAME_MAX_NUMBER_OF_ROUNDS / 2) {
+            return;
+        } 
+
         if (this.rc.getTeamVotes() > lastVoteCount) {
             // We won the vote
             System.out.println("We won the vote");
@@ -143,6 +149,11 @@ public class EnlightenmentCenter implements RobotInterface {
     }
 
     private void bid() throws GameActionException {
+        // If we have more than 1500 votes we can't lose the vote, so stop bidding
+        if (rc.getTeamVotes() > GameConstants.GAME_MAX_NUMBER_OF_ROUNDS / 2) {
+            return;
+        }
+
         int influence = this.rc.getInfluence();
         System.out.println(influence);
 

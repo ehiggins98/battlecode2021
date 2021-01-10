@@ -14,6 +14,7 @@ public abstract class MobileRobot implements RobotInterface {
     protected final PathFinder pathFinder;
     protected final Communicator communicator;
     protected final MapLocation ecLocation;
+    protected final int createdOnTurn;
     protected Message lastMessage;
 
     protected MobileRobot(RobotController rc) throws RuntimeException {
@@ -21,6 +22,15 @@ public abstract class MobileRobot implements RobotInterface {
         this.pathFinder = new PathFinder(rc);
         this.communicator = new Communicator(rc);
         this.ecLocation = getECLocation();
+        this.createdOnTurn = rc.getRoundNum();
+    }
+
+    protected MobileRobot(RobotController rc, MapLocation ecLocation) {
+        this.rc = rc;
+        this.pathFinder = new PathFinder(rc);
+        this.communicator = new Communicator(rc);
+        this.ecLocation = ecLocation;
+        this.createdOnTurn = rc.getRoundNum();
     }
 
     @Override

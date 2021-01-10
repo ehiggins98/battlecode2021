@@ -15,6 +15,10 @@ public class Politician extends MobileRobot {
         super(rc);
     }
 
+    public Politician(RobotController rc, MapLocation ecLocation) {
+        super(rc, ecLocation);
+    }
+
     @Override
     public void runTurn(int turn) throws GameActionException {
         super.runTurn(turn);

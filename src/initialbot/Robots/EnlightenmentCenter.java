@@ -24,10 +24,9 @@ public class EnlightenmentCenter implements RobotInterface {
     private final int adder = 1;
     private final double multiplier = 1.5;
 
-    private final int slandererDefenseRadius = 3;
-
     // Early game state
     private int earlyGameInfluenceIncAchieved = 0;
+    private int earlyGamePoliticiansCreated = 0;
     private Direction earlyGameDirection = Direction.WEST;
 
     private final Map<Integer, Integer> influenceIncToCost;
@@ -68,22 +67,38 @@ public class EnlightenmentCenter implements RobotInterface {
     // Return value indicates whether the early-game strategy is finished
     // Goal of the early game is to get 8 extra influence per turn by turn 20
     private boolean runEarlyGameTurn(int turn) throws GameActionException {
-        final int influenceTarget = 8;
+        final int influenceIncTarget = 8;
+        final int politicianTarget = 8;
+        final int slandererDefenseRadius = 3;
+        final int politicianDefenseRadius = 6;
+        final int politicianInfluence = 20;
+
         double cooldown = 2 / passability;
         int buildsBeforeTurn20 = (int) (20 / cooldown);
-        int influencePerSlanderer = Math.min((int) Math.ceil(influenceTarget / buildsBeforeTurn20), 6);
+        int influencePerSlanderer = Math.min((int) Math.ceil(influenceIncTarget / buildsBeforeTurn20), 6);
         
         Direction buildDirection = getBuildDirection();
-        if (buildDirection != null && rc.canBuildRobot(RobotType.SLANDERER, buildDirection, influenceIncToCost.get(influencePerSlanderer))) {
+        if (earlyGameInfluenceIncAchieved < influenceIncTarget && 
+                buildDirection != null &&
+                rc.canBuildRobot(RobotType.SLANDERER, buildDirection, influenceIncToCost.get(influencePerSlanderer))) {
+    
             rc.buildRobot(RobotType.SLANDERER, buildDirection, influenceIncToCost.get(influencePerSlanderer));
-            earlyGameInfluenceIncAchieved += influencePerSlanderer;
             communicator.sendMessage(new DefenseLocationMessage(RobotType.SLANDERER, turn, slandererDefenseRadius, earlyGameDirection));
+            earlyGameInfluenceIncAchieved += influencePerSlanderer;
+            earlyGameDirection = earlyGameDirection.rotateLeft();
+        } else if (earlyGamePoliticiansCreated < politicianTarget &&
+                buildDirection != null &&
+                rc.canBuildRobot(RobotType.POLITICIAN, buildDirection, politicianInfluence)) {
+
+            rc.buildRobot(RobotType.POLITICIAN, buildDirection, politicianInfluence);
+            communicator.sendMessage(new DefenseLocationMessage(RobotType.POLITICIAN, turn, politicianDefenseRadius, earlyGameDirection));
+            earlyGamePoliticiansCreated++;
             earlyGameDirection = earlyGameDirection.rotateLeft();
         }
-
+ 
         bid();
 
-        return earlyGameInfluenceIncAchieved >= influenceTarget;
+        return earlyGameInfluenceIncAchieved >= influenceIncTarget && earlyGamePoliticiansCreated >= politicianTarget;
     }
 
     private void updateBidAmount() {

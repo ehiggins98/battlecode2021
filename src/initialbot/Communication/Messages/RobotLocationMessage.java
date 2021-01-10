@@ -37,7 +37,7 @@ public class RobotLocationMessage implements Message {
     @Override
     public int toFlag() {
         return (MessagesList.getTypeCode(this) << (Helpers.flagBits - MessagesList.getNBitsForTypeCode())) + 
-                    (robotTypetoInt(robotType) << (bitsForX + bitsForY)) + 
+                    (Helpers.robotTypetoInt(robotType) << (bitsForX + bitsForY)) + 
                     ((x % xMod) << (bitsForY)) +
                     (y % yMod);
     }
@@ -53,7 +53,7 @@ public class RobotLocationMessage implements Message {
         flag >>= bitsForX;
 
         int robotType = Helpers.getMaskForNLSBs(bitsForRobotType) & flag;
-        this.robotType = robotTypeFromInt(robotType);
+        this.robotType = Helpers.robotTypeFromInt(robotType);
     }
 
     public RobotType getRobotType() {
@@ -76,20 +76,6 @@ public class RobotLocationMessage implements Message {
 
         RobotLocationMessage m = (RobotLocationMessage) obj;
         return this.x == m.x && this.y == m.y && this.robotType.equals(m.robotType);
-    }
-    
-    private int robotTypetoInt(RobotType robotType) {
-        for (int i = 0; i < Helpers.robotTypes.length; i++) {
-            if (Helpers.robotTypes[i].equals(robotType)) {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
-    private RobotType robotTypeFromInt(int robotType) {
-        return Helpers.robotTypes[robotType];
     }
 
     private int modToAbsolute(int coordInMod, int currAbsolute, int mod) {

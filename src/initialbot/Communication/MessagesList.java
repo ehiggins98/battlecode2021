@@ -4,6 +4,7 @@ import initialbot.Communication.Messages.DefenseLocationMessage;
 import initialbot.Communication.Messages.RobotLocationMessage;
 
 public class MessagesList {
+    // Right now we can only handle 4 message types, as the DefenseLocationMessage has only 2 free bits
     public static Message[] allMessages = {
         new DefenseLocationMessage(),
         new RobotLocationMessage()

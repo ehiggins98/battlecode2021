@@ -63,4 +63,18 @@ public class Helpers {
     public static int getMaskForNLSBs(int n) {
         return ~(~0 << n);
     }
+
+    public static int robotTypetoInt(RobotType robotType) {
+        for (int i = 0; i < Helpers.robotTypes.length; i++) {
+            if (Helpers.robotTypes[i].equals(robotType)) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    public static RobotType robotTypeFromInt(int robotType) {
+        return Helpers.robotTypes[robotType];
+    }
 }

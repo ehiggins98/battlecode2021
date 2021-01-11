@@ -22,7 +22,7 @@ public class DefenseLocationMessage implements Message {
     private final int bitsForRobotType = 2;
     private final int bitsForRoundNumber = 11;
     private final int bitsforDirection = 3;
-    private final int bitsForRadius = 7;
+    private final int bitsForRadius = 6;
 
     public DefenseLocationMessage() {}
 

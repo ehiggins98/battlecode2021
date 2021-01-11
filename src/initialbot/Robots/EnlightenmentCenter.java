@@ -12,6 +12,7 @@ import battlecode.common.RobotType;
 import initialbot.Helpers;
 import initialbot.Communication.Communicator;
 import initialbot.Communication.Messages.DefenseLocationMessage;
+import initialbot.Communication.Messages.ChangeRadiusMessage;
 
 public class EnlightenmentCenter implements RobotInterface {
     private final RobotController rc;
@@ -26,10 +27,10 @@ public class EnlightenmentCenter implements RobotInterface {
     private final double multiplier = 1.5;
 
     private final int politicianInfluence = 20;
-    private final int slandererDefenseRadius = 3;
-    private final int politicianDefenseRadius = 6;
 
     private Direction defenseDirection = Direction.WEST;
+    private int slandererDefenseRadius = 3;
+    private int politicianDefenseRadius = 6;
 
     // Early game state
     private int earlyGameInfluenceIncAchieved = 0;
@@ -37,6 +38,9 @@ public class EnlightenmentCenter implements RobotInterface {
 
     // Mid game state
     private RobotType midGameUnitToCreate = RobotType.SLANDERER;
+    private int lastPoliticianRadiusIncrement = 0;
+    private int lastSlandererRadiusIncrement = 0;
+    private int lastUnitCreated = 0;
 
     private final Map<Integer, Integer> influenceIncToCost;
 
@@ -116,14 +120,28 @@ public class EnlightenmentCenter implements RobotInterface {
 
             buildPoliticianAndDefend(turn, buildDirection);
             midGameUnitToCreate = RobotType.SLANDERER;
+            lastUnitCreated = turn;
         } else if (midGameUnitToCreate.equals(RobotType.SLANDERER) &&
                 buildDirection != null &&
                 rc.canBuildRobot(RobotType.SLANDERER, buildDirection, influenceIncToCost.get(1))) {
             buildSlandererAndDefend(turn, buildDirection, 1);
             midGameUnitToCreate = RobotType.POLITICIAN;
+            lastUnitCreated = turn;
         }
 
         bid();
+
+        if (turn - lastUnitCreated >= 2) {
+            if (turn - lastPoliticianRadiusIncrement >= 200) {
+                politicianDefenseRadius += 1;
+                communicator.sendMessage(new ChangeRadiusMessage(RobotType.POLITICIAN, politicianDefenseRadius));
+                lastPoliticianRadiusIncrement = turn;
+            } else if (turn - lastSlandererRadiusIncrement >= 200) {
+                slandererDefenseRadius += 1;
+                communicator.sendMessage(new ChangeRadiusMessage(RobotType.SLANDERER, slandererDefenseRadius));
+                lastSlandererRadiusIncrement = turn;
+            }
+        }
 
         return false;
     }
@@ -158,7 +176,6 @@ public class EnlightenmentCenter implements RobotInterface {
         System.out.println(influence);
 
         bidValue = Math.min(influence / 4, bidValue);
-
 
         if (this.rc.canBid(bidValue)) {
             this.rc.bid(bidValue);

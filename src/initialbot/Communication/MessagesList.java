@@ -1,11 +1,12 @@
 package initialbot.Communication;
 
 import initialbot.Communication.Messages.DefenseLocationMessage;
+import initialbot.Communication.Messages.ChangeRadiusMessage;
 import initialbot.Communication.Messages.RobotLocationMessage;
 
 // Right now we can only handle 4 message types, as the DefenseLocationMessage has only 2 free bits
 public class MessagesList {
-    private static final int numberOfMessages = 2;
+    private static final int numberOfMessages = 3;
 
     public static int getNBitsForTypeCode() {
         int bits = 0;
@@ -24,6 +25,8 @@ public class MessagesList {
             return 0;
         } else if (m.getClass().equals(RobotLocationMessage.class)) {
             return 1;
+        } else if (m.getClass().equals(ChangeRadiusMessage.class)) {
+            return 2;
         } else {
             return -1;
         }
@@ -35,6 +38,8 @@ public class MessagesList {
                 return new DefenseLocationMessage();
             case 1:
                 return new RobotLocationMessage();
+            case 2:
+                return new ChangeRadiusMessage();
             default:
                 return null;
         }

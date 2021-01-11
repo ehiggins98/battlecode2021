@@ -8,9 +8,12 @@ import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import initialbot.MobileRobot;
 import initialbot.Communication.Messages.DefenseLocationMessage;
+import initialbot.Communication.Messages.ChangeRadiusMessage;
 
 public class Politician extends MobileRobot {
     private static int maxEmpowerRadiusSquared = 9;
+    private int defenseRadius = 0;
+    private Direction defenseDirection = null;
 
     public Politician(RobotController rc) {
         super(rc);
@@ -23,13 +26,21 @@ public class Politician extends MobileRobot {
     @Override
     public void runTurn(int turn) throws GameActionException {
         super.runTurn(turn);
+        
+        if (lastMessage != null && lastMessage.getClass().equals(DefenseLocationMessage.class)) {
+            DefenseLocationMessage dlm = (DefenseLocationMessage) lastMessage;
+            defenseRadius = dlm.getRadius();
+            defenseDirection = dlm.getDirection();
+        } else if (lastMessage != null && lastMessage.getClass().equals(ChangeRadiusMessage.class)) {
+            ChangeRadiusMessage crm = (ChangeRadiusMessage) lastMessage;
+            defenseRadius = crm.getRadius();
+        }
 
         RobotInfo closestEnemy = getClosestEnemyRobot();
         if (closestEnemy != null) {
             attackRobot(closestEnemy);
-        } else if (lastMessage != null && lastMessage.getClass().equals(DefenseLocationMessage.class)) {
-            DefenseLocationMessage dlm = (DefenseLocationMessage) lastMessage;
-            MapLocation goal = pathFinder.getLocationAtRadius(ecLocation, dlm.getRadius(), dlm.getDirection());
+        } else if (defenseDirection != null && defenseRadius > 0) {
+            MapLocation goal = pathFinder.getLocationAtRadius(ecLocation, defenseRadius, defenseDirection);
             Direction direction = pathFinder.getStepTowardGoal(goal);
             if (direction != Direction.CENTER && rc.canMove(direction)) {
                 rc.move(direction);

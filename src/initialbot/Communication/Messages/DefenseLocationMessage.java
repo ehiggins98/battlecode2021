@@ -22,7 +22,7 @@ public class DefenseLocationMessage implements Message {
     private final int bitsForRobotType = 2;
     private final int bitsForRoundNumber = 11;
     private final int bitsforDirection = 3;
-    private final int bitsForRadius = 7;
+    private final int bitsForRadius = 6;
 
     public DefenseLocationMessage() {}
 
@@ -56,12 +56,9 @@ public class DefenseLocationMessage implements Message {
         robotType = Helpers.robotTypeFromInt(Helpers.getMaskForNLSBs(bitsForRobotType) & flag);
     }
 
-    public RobotType getRobotType() {
-        return robotType;
-    }
-
-    public int getroundNumber() {
-        return roundNumber;
+    @Override
+    public boolean shouldIgnore(RobotType robotType, int roundCreated) {
+        return !this.robotType.equals(robotType) || roundCreated < this.roundNumber;
     }
 
     public int getRadius() {

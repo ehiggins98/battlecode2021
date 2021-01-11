@@ -13,14 +13,18 @@ import initialbot.Helpers;
 public class Communicator {
     private final RobotController rc;
     private final List<Integer> robotIds;
+    private RobotType robotType;
+    private int roundCreated;
     private int ecId;
 
     public Communicator(RobotController rc) throws RuntimeException {
         this.rc = rc;
         this.robotIds = new ArrayList<Integer>();
+        this.robotType = rc.getType();
+        this.roundCreated = rc.getRoundNum();
 
         boolean foundEC = false;
-        for (RobotInfo info : rc.senseNearbyRobots(1)) {
+        for (RobotInfo info : rc.senseNearbyRobots(2)) {
             if (info.getType().equals(RobotType.ENLIGHTENMENT_CENTER)) {
                 this.ecId = info.getID();
                 foundEC = true;
@@ -43,7 +47,13 @@ public class Communicator {
         }
         
         int flag = rc.getFlag(ecId);
-        return decodeFlag(flag);
+        Message message = decodeFlag(flag);
+
+        if (message.shouldIgnore(robotType, roundCreated)) {
+            return null;
+        } else {
+            return message;
+        }
     }
 
     public void sendMessage(Message message) throws GameActionException {
@@ -55,7 +65,7 @@ public class Communicator {
         for (int id : robotIds) {
             if (rc.canGetFlag(id)) {
                 Message m = decodeFlag(rc.getFlag(id));
-                if (m != null) {
+                if (m != null && !m.shouldIgnore(robotType, roundCreated)) {
                     messages.add(m);
                 }
             }
@@ -71,6 +81,10 @@ public class Communicator {
 
         MapLocation loc = rc.getLocation();
         Message message = MessagesList.getMessage(getTypeCode(flag));
+        if (message == null) {
+            return null;
+        }
+
         message.fromFlag(new DecodingContext(loc.x, loc.y), flag);
         return message;
     }

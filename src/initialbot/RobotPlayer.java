@@ -12,25 +12,35 @@ public strictfp class RobotPlayer {
     public static void run(RobotController rc) {
         RobotPlayer.rc = rc;
 
-        switch (rc.getType()) {
-            case ENLIGHTENMENT_CENTER:
-                robot = new EnlightenmentCenter(rc);
-                break;
-            case POLITICIAN:
-                robot = new Politician(rc);
-                break;
-            case SLANDERER:
-                robot = new Slanderer(rc);
-                break;
-            case MUCKRAKER:
-                robot = new Muckraker(rc);
-                break;
+        try {
+            switch (rc.getType()) {
+                case ENLIGHTENMENT_CENTER:
+                    robot = new EnlightenmentCenter(rc);
+                    break;
+                case POLITICIAN:
+                    robot = new Politician(rc);
+                    break;
+                case SLANDERER:
+                    robot = new Slanderer(rc);
+                    break;
+                case MUCKRAKER:
+                    robot = new Muckraker(rc);
+                    break;
+            }
+        } catch (Exception e) {
+            System.out.printf("%d of type %s threw exception during initialization", rc.getID(), rc.getType());
+                e.printStackTrace();
         }
 
         while (true) {
             turn = rc.getRoundNum();
 
             try {
+                if (robot.getClass().equals(Slanderer.class) && rc.getType().equals(RobotType.POLITICIAN)) {
+                    Slanderer slanderer = (Slanderer) robot;
+                    robot = new Politician(rc, slanderer.ecLocation, slanderer.getDefenseRadius(), slanderer.getDefenseDirection());
+                }
+
                 robot.runTurn(turn);
                 Clock.yield();
             } catch (Exception e) {

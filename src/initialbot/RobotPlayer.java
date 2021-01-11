@@ -37,7 +37,8 @@ public strictfp class RobotPlayer {
 
             try {
                 if (robot.getClass().equals(Slanderer.class) && rc.getType().equals(RobotType.POLITICIAN)) {
-                    robot = new Politician(rc, ((Slanderer) robot).ecLocation);
+                    Slanderer slanderer = (Slanderer) robot;
+                    robot = new Politician(rc, slanderer.ecLocation, slanderer.getDefenseRadius(), slanderer.getDefenseDirection());
                 }
 
                 robot.runTurn(turn);

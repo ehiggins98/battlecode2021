@@ -16,6 +16,14 @@ public class Slanderer extends MobileRobot {
         super(rc);
     }
 
+    public int getDefenseRadius() {
+        return defenseRadius;
+    }
+
+    public Direction getDefenseDirection() {
+        return defenseDirection;
+    }
+
     @Override
     public void runTurn(int turn) throws GameActionException {
         super.runTurn(turn);

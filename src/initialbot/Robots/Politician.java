@@ -19,8 +19,10 @@ public class Politician extends MobileRobot {
         super(rc);
     }
 
-    public Politician(RobotController rc, MapLocation ecLocation) {
+    public Politician(RobotController rc, MapLocation ecLocation, int defenseRadius, Direction defenseDirection) {
         super(rc, ecLocation);
+        this.defenseRadius = defenseRadius;
+        this.defenseDirection = defenseDirection;
     }
 
     @Override

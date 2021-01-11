@@ -28,15 +28,17 @@ public class Slanderer extends MobileRobot {
     public void runTurn(int turn) throws GameActionException {
         super.runTurn(turn);
 
-        if (defenseRadius != 0 && defenseDirection != null) {
+        if (defenseRadius != 0 && defenseDirection != null && rc.getCooldownTurns() < 1) {
             MapLocation goal = pathFinder.getLocationAtRadius(ecLocation, defenseRadius, defenseDirection);
             Direction direction = pathFinder.getStepTowardGoal(goal);
             if (direction != Direction.CENTER && rc.canMove(direction)) {
                 rc.move(direction);
+            } else {
+                defenseDirection = defenseDirection.rotateLeft();
             }
         }
 
-        if (lastMessage != null && lastMessage.getClass().equals(DefenseLocationMessage.class)) {
+        if (lastMessage != null && defenseRadius == 0 && defenseDirection == null && lastMessage.getClass().equals(DefenseLocationMessage.class)) {
             DefenseLocationMessage dlm = (DefenseLocationMessage) lastMessage;
             defenseRadius = dlm.getRadius();
             defenseDirection = dlm.getDirection();

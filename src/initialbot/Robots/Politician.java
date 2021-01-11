@@ -41,7 +41,7 @@ public class Politician extends MobileRobot {
         RobotInfo closestEnemy = getClosestEnemyRobot();
         if (closestEnemy != null) {
             attackRobot(closestEnemy);
-        } else if (defenseDirection != null && defenseRadius > 0) {
+        } else if (defenseDirection != null && defenseRadius > 0 && ecLocation != null && rc.getCooldownTurns() < 1) {
             MapLocation goal = pathFinder.getLocationAtRadius(ecLocation, defenseRadius, defenseDirection);
             Direction direction = pathFinder.getStepTowardGoal(goal);
             if (direction != Direction.CENTER && rc.canMove(direction)) {

@@ -52,6 +52,6 @@ public abstract class MobileRobot implements RobotInterface {
             }
         }
 
-        throw new RuntimeException("couldn't find EC on robot initialization");
+        return null;
     }
 }

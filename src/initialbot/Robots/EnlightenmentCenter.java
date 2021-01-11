@@ -26,8 +26,6 @@ public class EnlightenmentCenter implements RobotInterface {
     private final int adder = 1;
     private final double multiplier = 1.5;
 
-    private final int politicianInfluence = 20;
-
     private Direction defenseDirection = Direction.WEST;
     private int slandererDefenseRadius = 3;
     private int politicianDefenseRadius = 6;
@@ -41,22 +39,16 @@ public class EnlightenmentCenter implements RobotInterface {
     private int lastPoliticianRadiusIncrement = 0;
     private int lastSlandererRadiusIncrement = 0;
     private int lastUnitCreated = 0;
+    private int convictionAfterLastBuild = 0;
 
-    private final Map<Integer, Integer> influenceIncToCost;
+    private Map<Integer, Integer> slandererCostCache = new HashMap<Integer, Integer>();
+    private int maxIncInCache = 0;
 
     public EnlightenmentCenter(RobotController rc) throws GameActionException {
         this.rc = rc;
         this.communicator = new Communicator(rc);
         this.phase = GamePhase.EARLY;
         this.passability = rc.sensePassability(rc.getLocation());
-
-        influenceIncToCost = new HashMap<Integer, Integer>();
-        influenceIncToCost.put(1, 21);
-        influenceIncToCost.put(2, 41);
-        influenceIncToCost.put(3, 63);
-        influenceIncToCost.put(4, 85);
-        influenceIncToCost.put(5, 107);
-        influenceIncToCost.put(6, 130);
     }
 
     @Override
@@ -87,6 +79,7 @@ public class EnlightenmentCenter implements RobotInterface {
     private boolean runEarlyGameTurn(int turn) throws GameActionException {
         final int influenceIncTarget = 8;
         final int politicianTarget = 8;
+        final int politicianInfluence = 20;
 
         double cooldown = 2 / passability;
         int buildsBeforeTurn20 = (int) (20 / cooldown);
@@ -95,14 +88,14 @@ public class EnlightenmentCenter implements RobotInterface {
         Direction buildDirection = getBuildDirection();
         if (earlyGameInfluenceIncAchieved < influenceIncTarget && 
                 buildDirection != null &&
-                rc.canBuildRobot(RobotType.SLANDERER, buildDirection, influenceIncToCost.get(influencePerSlanderer))) {
+                rc.canBuildRobot(RobotType.SLANDERER, buildDirection, getSlandererInfluenceForInc(influencePerSlanderer))) {
     
             buildSlandererAndDefend(turn, buildDirection, influencePerSlanderer);
         } else if (earlyGamePoliticiansCreated < politicianTarget &&
                 buildDirection != null &&
                 rc.canBuildRobot(RobotType.POLITICIAN, buildDirection, politicianInfluence)) {
 
-            buildPoliticianAndDefend(turn, buildDirection);
+            buildPoliticianAndDefend(turn, buildDirection, politicianInfluence);
         }
  
         bid();
@@ -114,17 +107,21 @@ public class EnlightenmentCenter implements RobotInterface {
     // In the mid-game right now we just alternate creating slanderers and politicians, and bidding on every turn.
     private boolean runMidGameTurn(int turn) throws GameActionException {
         Direction buildDirection = getBuildDirection();
+        int politicianCost = getPoliticianCost(turn);
+        int slandererCost = getSlandererCost(turn);
+
         if (midGameUnitToCreate.equals(RobotType.POLITICIAN) && 
                 buildDirection != null &&
-                rc.canBuildRobot(RobotType.POLITICIAN, buildDirection, politicianInfluence)) {
-
-            buildPoliticianAndDefend(turn, buildDirection);
+                rc.canBuildRobot(RobotType.POLITICIAN, buildDirection, politicianCost)) {
+                    
+            buildPoliticianAndDefend(turn, buildDirection, politicianCost);
             midGameUnitToCreate = RobotType.SLANDERER;
             lastUnitCreated = turn;
         } else if (midGameUnitToCreate.equals(RobotType.SLANDERER) &&
                 buildDirection != null &&
-                rc.canBuildRobot(RobotType.SLANDERER, buildDirection, influenceIncToCost.get(1))) {
-            buildSlandererAndDefend(turn, buildDirection, 1);
+                rc.canBuildRobot(RobotType.SLANDERER, buildDirection, slandererCost)) {
+
+            buildSlandererAndDefend(turn, buildDirection, getInfluenceInc(slandererCost));
             midGameUnitToCreate = RobotType.POLITICIAN;
             lastUnitCreated = turn;
         }
@@ -172,8 +169,6 @@ public class EnlightenmentCenter implements RobotInterface {
         }
 
         int influence = this.rc.getInfluence();
-        System.out.println(influence);
-
         bidValue = Math.min(influence / 4, bidValue);
 
         if (this.rc.canBid(bidValue)) {
@@ -194,16 +189,68 @@ public class EnlightenmentCenter implements RobotInterface {
     }
 
     private void buildSlandererAndDefend(int turn, Direction buildDirection, int influenceInc) throws GameActionException {
-        rc.buildRobot(RobotType.SLANDERER, buildDirection, influenceIncToCost.get(influenceInc));
+        rc.buildRobot(RobotType.SLANDERER, buildDirection, getSlandererInfluenceForInc(influenceInc));
         communicator.sendMessage(new DefenseLocationMessage(RobotType.SLANDERER, turn, slandererDefenseRadius, defenseDirection));
         earlyGameInfluenceIncAchieved += influenceInc;
         defenseDirection = defenseDirection.rotateLeft();
+        convictionAfterLastBuild = rc.getConviction();
     }
 
-    private void buildPoliticianAndDefend(int turn, Direction buildDirection) throws GameActionException {
-        rc.buildRobot(RobotType.POLITICIAN, buildDirection, politicianInfluence);
+    private void buildPoliticianAndDefend(int turn, Direction buildDirection, int influence) throws GameActionException {
+        rc.buildRobot(RobotType.POLITICIAN, buildDirection, influence);
         communicator.sendMessage(new DefenseLocationMessage(RobotType.POLITICIAN, turn, politicianDefenseRadius, defenseDirection));
         earlyGamePoliticiansCreated++;
         defenseDirection = defenseDirection.rotateLeft();
+        convictionAfterLastBuild = rc.getConviction();
+    }
+
+    private int getPoliticianCost(int turn) {
+        final int minCost = 11;
+        int convictionGained = rc.getConviction() - convictionAfterLastBuild;
+        if (rc.getConviction() < getMinECConviction(turn)) {
+            convictionGained -= 5;
+        }
+ 
+        return Math.max(convictionGained, minCost);
+    }
+
+    private int getSlandererCost(int turn) {
+        final int minCost = 21;
+        int convictionGained = rc.getConviction() - convictionAfterLastBuild;
+        if (rc.getConviction() < getMinECConviction(turn)) {
+            convictionGained -= 5;
+        }
+
+        int cost = Math.max(convictionGained, minCost);
+        return getSlandererInfluenceForInc(getInfluenceInc(cost));
+    }
+
+    private int getMinECConviction(int turn) {
+        return 100 + turn / 6;
+    }
+
+    private int getSlandererInfluenceForInc(int inc) {
+        if (slandererCostCache.containsKey(inc)) {
+            return slandererCostCache.get(inc);
+        }
+
+        int val;
+        if (slandererCostCache.size() > 0 && inc > maxIncInCache) {
+            val = slandererCostCache.get(maxIncInCache);
+        } else {
+            val = 20 * inc;
+        }
+        
+        for (; getInfluenceInc(val) != inc; val++) {}
+
+        slandererCostCache.put(inc, val);
+        if (inc > maxIncInCache) {
+            maxIncInCache = inc;
+        }
+        return val;
+    }
+
+    private int getInfluenceInc(int x) {
+        return (int) (x * (1.0 / 50.0 + 0.03 * Math.exp(-0.001 * x)));
     }
 }

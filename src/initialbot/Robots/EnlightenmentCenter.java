@@ -136,7 +136,7 @@ public class EnlightenmentCenter implements RobotInterface {
                 politicianDefenseRadius += 1;
                 communicator.sendMessage(new ChangeRadiusMessage(RobotType.POLITICIAN, politicianDefenseRadius));
                 lastPoliticianRadiusIncrement = turn;
-            } else if (buildDirection == null && turn - lastSlandererRadiusIncrement >= 100) {
+            } else if (buildDirection == null && turn - lastSlandererRadiusIncrement >= 100 && slandererDefenseRadius < 5) {
                 slandererDefenseRadius += 1;
                 communicator.sendMessage(new ChangeRadiusMessage(RobotType.SLANDERER, slandererDefenseRadius));
                 lastSlandererRadiusIncrement = turn;

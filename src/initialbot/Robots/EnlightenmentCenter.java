@@ -20,11 +20,11 @@ public class EnlightenmentCenter implements RobotInterface {
 
     private GamePhase phase;
     private double passability;
-    
+
     private static int bidValue = 1;
     private static int lastVoteCount = 0;
-    private final int adder = 1;
-    private final double multiplier = 1.5;
+    private final int adder = 2;
+    private final double multiplier = 3;
 
     private Direction defenseDirection = Direction.WEST;
     private int slandererDefenseRadius = 3;
@@ -54,7 +54,7 @@ public class EnlightenmentCenter implements RobotInterface {
     @Override
     public void runTurn(int turn) throws GameActionException {
         updateBidAmount();
-        
+
         boolean finished;
         switch (phase) {
             case EARLY:
@@ -77,8 +77,8 @@ public class EnlightenmentCenter implements RobotInterface {
     // Return value indicates whether the early-game strategy is finished
     // Goal of the early game is to get 8 extra influence per turn by turn 20
     private boolean runEarlyGameTurn(int turn) throws GameActionException {
-        final int influenceIncTarget = 8;
-        final int politicianTarget = 8;
+        final int influenceIncTarget = 6;
+        final int politicianTarget = 16;
         final int politicianInfluence = 20;
 
         double cooldown = 2 / passability;
@@ -86,10 +86,10 @@ public class EnlightenmentCenter implements RobotInterface {
         int influencePerSlanderer = Math.min((int) Math.ceil(((double) influenceIncTarget) / buildsBeforeTurn20), 6);
 
         Direction buildDirection = getBuildDirection();
-        if (earlyGameInfluenceIncAchieved < influenceIncTarget && 
+        if (earlyGameInfluenceIncAchieved < influenceIncTarget &&
                 buildDirection != null &&
                 rc.canBuildRobot(RobotType.SLANDERER, buildDirection, getSlandererInfluenceForInc(influencePerSlanderer))) {
-    
+
             buildSlandererAndDefend(turn, buildDirection, influencePerSlanderer);
         } else if (earlyGamePoliticiansCreated < politicianTarget &&
                 buildDirection != null &&
@@ -97,7 +97,7 @@ public class EnlightenmentCenter implements RobotInterface {
 
             buildPoliticianAndDefend(turn, buildDirection, politicianInfluence);
         }
- 
+
         bid();
 
         return earlyGameInfluenceIncAchieved >= influenceIncTarget && earlyGamePoliticiansCreated >= politicianTarget;
@@ -110,10 +110,10 @@ public class EnlightenmentCenter implements RobotInterface {
         int politicianCost = getPoliticianCost(turn);
         int slandererCost = getSlandererCost(turn);
 
-        if (midGameUnitToCreate.equals(RobotType.POLITICIAN) && 
+        if (midGameUnitToCreate.equals(RobotType.POLITICIAN) &&
                 buildDirection != null &&
                 rc.canBuildRobot(RobotType.POLITICIAN, buildDirection, politicianCost)) {
-                    
+
             buildPoliticianAndDefend(turn, buildDirection, politicianCost);
             midGameUnitToCreate = RobotType.SLANDERER;
             lastUnitCreated = turn;
@@ -125,7 +125,7 @@ public class EnlightenmentCenter implements RobotInterface {
             midGameUnitToCreate = RobotType.POLITICIAN;
             lastUnitCreated = turn;
         }
-        
+
         bid();
         if (turn - lastUnitCreated >= 2) {
             if (turn - lastPoliticianRadiusIncrement >= 200) {
@@ -146,7 +146,7 @@ public class EnlightenmentCenter implements RobotInterface {
         // No point in updating the bid amount if we have a guaranteed majority of votes
         if (rc.getTeamVotes() > GameConstants.GAME_MAX_NUMBER_OF_ROUNDS / 2) {
             return;
-        } 
+        }
 
         if (this.rc.getTeamVotes() > lastVoteCount) {
             // We won the vote
@@ -169,7 +169,7 @@ public class EnlightenmentCenter implements RobotInterface {
         }
 
         int influence = this.rc.getInfluence();
-        bidValue = Math.min(influence / 4, bidValue);
+        bidValue = Math.min(influence / 3, bidValue);
 
         if (this.rc.canBid(bidValue)) {
             this.rc.bid(bidValue);
@@ -210,7 +210,7 @@ public class EnlightenmentCenter implements RobotInterface {
         if (rc.getConviction() < getMinECConviction(turn)) {
             convictionGained -= 5;
         }
- 
+
         return Math.max(convictionGained, minCost);
     }
 
@@ -240,7 +240,7 @@ public class EnlightenmentCenter implements RobotInterface {
         } else {
             val = 20 * inc;
         }
-        
+
         for (; getInfluenceInc(val) != inc; val++) {}
 
         slandererCostCache.put(inc, val);

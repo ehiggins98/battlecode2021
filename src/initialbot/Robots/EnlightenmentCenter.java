@@ -130,13 +130,12 @@ public class EnlightenmentCenter implements RobotInterface {
         }
 
         bid();
-
         if (turn - lastUnitCreated >= 2) {
             if (turn - lastPoliticianRadiusIncrement >= 200) {
                 politicianDefenseRadius += 1;
                 communicator.sendMessage(new ChangeRadiusMessage(RobotType.POLITICIAN, politicianDefenseRadius));
                 lastPoliticianRadiusIncrement = turn;
-            } else if (buildDirection == null && turn - lastSlandererRadiusIncrement >= 100 && slandererDefenseRadius < 5) {
+            } else if (buildDirection == null && turn - lastSlandererRadiusIncrement >= 100 && slandererDefenseRadius < 6) {
                 slandererDefenseRadius += 1;
                 communicator.sendMessage(new ChangeRadiusMessage(RobotType.SLANDERER, slandererDefenseRadius));
                 lastSlandererRadiusIncrement = turn;

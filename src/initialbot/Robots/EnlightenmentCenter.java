@@ -83,8 +83,8 @@ public class EnlightenmentCenter implements RobotInterface {
 
         double cooldown = 2 / passability;
         int buildsBeforeTurn20 = (int) (20 / cooldown);
-        int influencePerSlanderer = Math.min((int) Math.ceil(influenceIncTarget / buildsBeforeTurn20), 6);
-        
+        int influencePerSlanderer = Math.min((int) Math.ceil(((double) influenceIncTarget) / buildsBeforeTurn20), 6);
+
         Direction buildDirection = getBuildDirection();
         if (earlyGameInfluenceIncAchieved < influenceIncTarget && 
                 buildDirection != null &&
@@ -125,7 +125,7 @@ public class EnlightenmentCenter implements RobotInterface {
             midGameUnitToCreate = RobotType.POLITICIAN;
             lastUnitCreated = turn;
         }
-
+        
         bid();
         if (turn - lastUnitCreated >= 2) {
             if (turn - lastPoliticianRadiusIncrement >= 200) {

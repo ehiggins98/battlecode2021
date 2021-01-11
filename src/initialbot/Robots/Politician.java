@@ -46,7 +46,7 @@ public class Politician extends MobileRobot {
             Direction direction = pathFinder.getStepTowardGoal(goal);
             if (direction != Direction.CENTER && rc.canMove(direction)) {
                 rc.move(direction);
-            } else {
+            } else if (direction == Direction.CENTER) {
                 defenseDirection = defenseDirection.rotateLeft();
             }
         }
